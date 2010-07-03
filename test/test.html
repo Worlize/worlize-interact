@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ChatServer Test</title>
+    <script src="client/socket.io.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+      io.setPath("/client/");
+    
+      var socket = null;
+      function connect(port, serverid) {
+        if (socket && socket.connected) {
+          disconnect();
+        }
+        if (!serverid) {
+          serverid = "1";
+        }
+        if (!port) {
+          port = 80;
+        }
+        console.log("Connecting to port " + port + " serverid " + serverid)
+        socket = new io.Socket(null, {
+          rememberTransport: false,
+          port: port,
+          resource: 'interact.' + serverid
+        });
+        socket.connect();
+        socket.addEvent('message', function(data) {
+          var obj = JSON.parse(data);
+          console.log("Message Received", obj);
+        });
+        socket.addEvent('connect', function() {
+          console.log("Connected");
+        });
+        socket.addEvent('disconnect', function() {
+          console.log("Disconnected");
+        });
+      }
+      
+      function disconnect() {
+        if (socket && socket.disconnect) {
+          socket.disconnect();
+        }
+      }
+      
+      function handleChatButtonClick(event) {
+        var value = document.getElementById('chatbox').value;
+        console.log("Saying " + value);
+        socket.send(JSON.stringify({ msg: "say", data: value }));
+      }
+      
+      function handleHandshakeButtonClick(event) {
+        console.log("Sending handshake");
+        socket.send(
+          JSON.stringify({ 
+            msg: "handshake", data: {
+              session_guid: "a1f85d84-7ed3-11df-9975-f716865e4541"
+            }
+          })
+        );
+      }
+      
+      function init() {
+        connect(80, 1);
+      }
+    </script>
+  </head>
+  <body onload="init()">
+    <input type="text" value="Type here to chat..." id="chatbox">
+    <button onclick="handleChatButtonClick(event)">Chat</button>
+    <button onclick="handleHandshakeButtonClick(event)">Handshake</button>
+  </body>
+</html>
