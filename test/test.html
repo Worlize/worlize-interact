@@ -13,7 +13,7 @@
           disconnect();
         }
         if (!serverid) {
-          serverid = "1";
+          serverid = "interact1";
         }
         if (!port) {
           port = 80;
@@ -22,7 +22,7 @@
         socket = new io.Socket(null, {
           rememberTransport: false,
           port: port,
-          resource: 'interact.' + serverid
+          resource: serverid
         });
         socket.connect();
         socket.addEvent('message', function(data) {
@@ -61,7 +61,7 @@
       }
       
       function init() {
-        connect(80, 1);
+        connect(80, "interact4");
       }
     </script>
   </head>

@@ -66,3 +66,9 @@ else {
     sys.puts("You must specify a valid port number");
     process.exit(1);
 }
+
+// Top level exception handler, for safety
+process.addListener('uncaughtException', function(error) {
+    sys.log("CRITICAL: Uncaught Exception: " + error);
+});
+
