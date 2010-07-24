@@ -5,6 +5,8 @@ var kiwi = require('kiwi'),
 
 var VERSION = "0.1.0";
 
+var catchExceptions = false;
+
 var args = { /* defaults */
     port: "9000"
 };
@@ -67,8 +69,10 @@ else {
     process.exit(1);
 }
 
-// Top level exception handler, for safety
-process.addListener('uncaughtException', function(error) {
-    sys.log("CRITICAL: Uncaught Exception: " + error);
-});
+if (catchExceptions) {
+    // Top level exception handler, for safety
+    process.addListener('uncaughtException', function(error) {
+        sys.log("CRITICAL: Uncaught Exception: " + error);
+    });
+}
 
