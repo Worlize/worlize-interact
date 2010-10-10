@@ -1,7 +1,6 @@
 #!/usr/local/env node
 
-var kiwi = require('kiwi'),
-    sys = require('sys'),
+var sys = require('sys'),
     spawn = require('child_process').spawn,
     ChatServer = require('./lib/chatserver').ChatServer;
 

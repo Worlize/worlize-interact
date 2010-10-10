@@ -1,9 +1,6 @@
 var sys = require('sys'),
-    kiwi = require('kiwi'),
     redisConnectionManager = require('../lib/model/redis_connection_manager').connectionManager,
     redis = redisConnectionManager.getClient('presence');
-    
-kiwi.require('ext');
 
 redis.set("session:a1f85d84-7ed3-11df-9975-f716865e4541", JSON.stringify(
     {
