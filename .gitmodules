@@ -3,7 +3,7 @@
 	url = http://github.com/LearnBoost/Socket.IO.git
 [submodule "lib/vendor/socket.io"]
 	path = lib/vendor/socket.io
-	url = git://github.com/LearnBoost/Socket.IO-node.git
+	url = git://github.com/Worlize/Socket.IO-node.git
 [submodule "lib/vendor/redis-node-client"]
 	path = lib/vendor/redis-node-client
 	url = git://github.com/fictorial/redis-node-client.git
