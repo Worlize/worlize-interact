@@ -6,4 +6,4 @@
 	url = git://github.com/Worlize/Socket.IO-node.git
 [submodule "lib/vendor/redis-node-client"]
 	path = lib/vendor/redis-node-client
-	url = git://github.com/fictorial/redis-node-client.git
+	url = git://github.com/maccman/redis-node-client.git
