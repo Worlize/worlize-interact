@@ -26,18 +26,18 @@ var serverId = args['serverid'];
 var showHelp = args['help'];
 
 if (showHelp) {
-    sys.puts("Worlize Chat Server Version " + VERSION);
-    sys.puts("--------------------------------------------");
-    sys.puts("usage: server.js [Options]");
-    sys.puts("");
-    sys.puts("options:");
-    sys.puts("  --help                Show this help information");
-    sys.puts("");
-    sys.puts("  --port=nnnn           Listen on port nnnn (Optional) Defaults to 9000");
-    sys.puts("");
-    sys.puts("  --serverid=mysrv1     Set server identifier to mysrv1 (Optional)");
-    sys.puts("                        Defaults to <hostname>-<port>, e.g. server.foo.com-9000");
-    sys.puts("");
+    console.log("Worlize Chat Server Version " + VERSION);
+    console.log("--------------------------------------------");
+    console.log("usage: server.js [Options]");
+    console.log("");
+    console.log("options:");
+    console.log("  --help                Show this help information");
+    console.log("");
+    console.log("  --port=nnnn           Listen on port nnnn (Optional) Defaults to 9000");
+    console.log("");
+    console.log("  --serverid=mysrv1     Set server identifier to mysrv1 (Optional)");
+    console.log("                        Defaults to <hostname>-<port>, e.g. server.foo.com-9000");
+    console.log("");
     process.exit(0);    
 }
 
@@ -56,7 +56,7 @@ if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
         hostname.addListener('exit', function(code) {
             serverId = serverId.toString().trim();
             if (code != 0) {
-                sys.puts("Unable to determine hostname.  You must explicitly provide a serverId");
+                console.log("Unable to determine hostname.  You must explicitly provide a serverId");
                 process.exit(1);
             }
             serverId = serverId + "-" + port;
@@ -66,7 +66,7 @@ if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
     }
 }
 else {
-    sys.puts("You must specify a valid port number");
+    console.log("You must specify a valid port number");
     process.exit(1);
 }
 
