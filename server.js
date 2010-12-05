@@ -6,7 +6,7 @@ var sys = require('sys'),
 
 var VERSION = "0.1.0";
 
-var catchExceptions = false;
+var catchExceptions = true;
 
 var args = { /* defaults */
     port: "9000"
