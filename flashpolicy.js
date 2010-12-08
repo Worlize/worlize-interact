@@ -13,7 +13,7 @@ policy = '<?xml version="1.0"?>\n' +
 net.createServer(function(socket){
         socket.write(policy);
 	socket.end();
-	sys.log("Provided response to " + socket.remoteAddress);
+	console.log("Provided response to " + socket.remoteAddress);
 }).listen(843);
 
-sys.log("Ready to accept connections on port 843.")
+console.log("Ready to accept connections on port 843.")
