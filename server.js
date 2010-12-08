@@ -71,9 +71,9 @@ else {
 }
 
 if (catchExceptions) {
-    // Top level exception handler, for safety
+    // Top level exception handler, for safety.  Log stack trace.
     process.addListener('uncaughtException', function(error) {
-        sys.log("CRITICAL: Uncaught Exception: " + error);
+        console.log("CRITICAL: Uncaught Exception!\n-----BEGIN STACK TRACE-----\n" + error.stack + "\n-----END STACK TRACE-----");
     });
 }
 
