@@ -7,3 +7,6 @@
 [submodule "lib/vendor/redis-node-client"]
 	path = lib/vendor/redis-node-client
 	url = git://github.com/maccman/redis-node-client.git
+[submodule "lib/vendor/websocket-node"]
+	path = lib/vendor/websocket-node
+	url = git://github.com/Worlize/WebSocket-Node.git
