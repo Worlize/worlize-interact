@@ -1,0 +1,12 @@
+{
+    "name": "worlize-interact",
+    "version": "0.0.1",
+    "description": "Real-time interactivity server powering the Worlize platform.",
+    "dependencies": {
+        "websocket": "0.0.1",
+        "policyfile": "0.0.3"
+    },
+    "engines": {
+        "node": ">=0.4.7"
+    }
+}
