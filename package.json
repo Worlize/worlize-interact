@@ -3,8 +3,9 @@
     "version": "0.0.1",
     "description": "Real-time interactivity server powering the Worlize platform.",
     "dependencies": {
-        "websocket": "0.0.1",
-        "policyfile": "0.0.3"
+        "websocket": "=0.0.1",
+        "policyfile": ">=0.0.3",
+        "redis": "=0.5.11"
     },
     "engines": {
         "node": ">=0.4.7"
