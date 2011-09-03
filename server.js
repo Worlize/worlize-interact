@@ -9,7 +9,8 @@ var VERSION = "0.1.0";
 var catchExceptions = true;
 
 var args = { /* defaults */
-    port: "9000"
+    port: "9000",
+    debug: false
 };
 
 /* Parse command line options */
@@ -46,6 +47,7 @@ var server;
 if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
     if (serverId) {
         server = new ChatServer();
+        server.debug = args.debug ? true : false;
         server.listen( port, serverId );
     }
     else {
