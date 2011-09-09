@@ -23,6 +23,7 @@ process.argv.forEach(function(value) {
 });
 
 var port = parseInt(args['port']);
+var host = args['listenip'];
 var serverId = args['serverid'];
 var showHelp = args['help'];
 
@@ -39,16 +40,23 @@ if (showHelp) {
     console.log("  --serverid=mysrv1     Set server identifier to mysrv1 (Optional)");
     console.log("                        Defaults to <hostname>-<port>, e.g. server.foo.com-9000");
     console.log("");
+    console.log("  --listenip=<ip>       Listen on the specified IP address only. Default is to");
+    console.log("                        listen on all interfaces.");
+    console.log("");
     process.exit(0);    
 }
 
 var server;
 
+if (host) {
+    console.log("Listening on IP " + host);
+}
+
 if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
     if (serverId) {
         server = new ChatServer();
         server.debug = args.debug ? true : false;
-        server.listen( port, serverId );
+        server.listen( port, host, serverId );
     }
     else {
         var hostname = spawn('hostname');
@@ -63,7 +71,7 @@ if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
             }
             serverId = serverId + "-" + port;
             server = new ChatServer();
-            server.listen( port, serverId ); 
+            server.listen( port, host, serverId ); 
         });
     }
 }
