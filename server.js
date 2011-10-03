@@ -3,7 +3,7 @@
 var sys = require('sys'),
     spawn = require('child_process').spawn,
     http = require('http'),
-    ChatServer = require('./lib/chatserver'),
+    ChatServer = require('./lib/chat_server'),
     WebSocketServer = require('websocket').server,
     WebSocketRouter = require('websocket').router;
 
