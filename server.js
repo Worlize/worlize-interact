@@ -2,7 +2,10 @@
 
 var sys = require('sys'),
     spawn = require('child_process').spawn,
-    ChatServer = require('./lib/chatserver').ChatServer;
+    http = require('http'),
+    ChatServer = require('./lib/chatserver'),
+    WebSocketServer = require('websocket').server,
+    WebSocketRouter = require('websocket').router;
 
 var VERSION = "0.1.0";
 
@@ -27,9 +30,10 @@ var host = args['listenip'];
 var serverId = args['serverid'];
 var showHelp = args['help'];
 
+console.log("Worlize Chat Server Version " + VERSION);
+console.log("--------------------------------------------");
+
 if (showHelp) {
-    console.log("Worlize Chat Server Version " + VERSION);
-    console.log("--------------------------------------------");
     console.log("usage: server.js [Options]");
     console.log("");
     console.log("options:");
@@ -45,18 +49,51 @@ if (showHelp) {
     console.log("");
     process.exit(0);    
 }
+else {
+    console.log("For usage information, run with --help.");
+}
 
 var server;
+var httpServer;
+var webSocketServer;
+var webSocketRouter;
 
-if (host) {
-    console.log("Listening on IP " + host);
+function listen(port, host, serverId) {
+    console.log("Server ID: " + serverId);
+    
+    httpServer = http.createServer(function(req, res) {
+        console.log("Request for url " + req.url);
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end("Nothing to see here.  Move along.\n");
+    });
+    
+    if (host) {
+        httpServer.listen(port, host, function() {
+            console.log("Listening on " + host + ":" + port);
+        });
+    }
+    else {
+        httpServer.listen(port, function() {
+            console.log("Listening on 0.0.0.0:" + port);
+        });
+    }
+    
+    webSocketServer = new WebSocketServer({
+        // config options...
+        httpServer: httpServer
+    });
+    
+    webSocketRouter = new WebSocketRouter();
+    webSocketRouter.attachServer(webSocketServer);
+    
+    server = new ChatServer();
+    server.debug = args.debug ? true : false;
+    server.mount( webSocketRouter, serverId );
 }
 
 if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
     if (serverId) {
-        server = new ChatServer();
-        server.debug = args.debug ? true : false;
-        server.listen( port, host, serverId );
+        listen(port, host, serverId);
     }
     else {
         var hostname = spawn('hostname');
@@ -70,8 +107,7 @@ if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
                 process.exit(1);
             }
             serverId = serverId + "-" + port;
-            server = new ChatServer();
-            server.listen( port, host, serverId ); 
+            listen(port, host, serverId);
         });
     }
 }
