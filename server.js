@@ -4,6 +4,7 @@ var sys = require('sys'),
     spawn = require('child_process').spawn,
     http = require('http'),
     ChatServer = require('./lib/chat_server'),
+    PresenceServer = require('./lib/presence_server'),
     WebSocketServer = require('websocket').server,
     WebSocketRouter = require('websocket').router;
 
@@ -86,9 +87,13 @@ function listen(port, host, serverId) {
     webSocketRouter = new WebSocketRouter();
     webSocketRouter.attachServer(webSocketServer);
     
-    server = new ChatServer();
-    server.debug = args.debug ? true : false;
-    server.mount( webSocketRouter, serverId );
+    chatServer = new ChatServer();
+    chatServer.debug = args.debug ? true : false;
+    chatServer.mount( webSocketRouter, serverId );
+    
+    presenceServer = new PresenceServer();
+    presenceServer.debug = args.debug ? true : false;
+    presenceServer.mount( webSocketRouter, serverId );
 }
 
 if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
