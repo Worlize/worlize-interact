@@ -59,6 +59,9 @@ var httpServer;
 var webSocketServer;
 var webSocketRouter;
 
+var chatServer;
+var presenceServer;
+
 function listen(port, host, serverId) {
     console.log("Server ID: " + serverId);
     
@@ -120,6 +123,38 @@ else {
     console.log("You must specify a valid port number");
     process.exit(1);
 }
+
+function handleSignalToTerminate() {
+    console.log("Shutting down...");
+    
+    var callbacksRemaining = 2;
+    function handleShutdownComplete() {
+        callbacksRemaining --;
+        if (callbacksRemaining === 0) {
+            webSocketServer.shutDown();
+            setTimeout(function() {
+                console.log("Shutdown complete");
+                process.exit(0);
+            }, 500);
+        }
+    }
+    
+    setTimeout(function() {
+        console.log("Graceful shutdown failed.  Terminating.");
+        process.exit(1);
+    }, 8000);
+
+    // Stop accepting new connections.
+    webSocketServer.unmount();
+    httpServer.close();
+    
+    chatServer.shutdown(handleShutdownComplete);
+    presenceServer.shutdown(handleShutdownComplete);
+}
+
+process.on('SIGINT', handleSignalToTerminate);
+process.on('SIGTERM', handleSignalToTerminate);
+process.on('SIGKILL', handleSignalToTerminate);
 
 if (catchExceptions) {
     // Top level exception handler, for safety.  Log stack trace.
