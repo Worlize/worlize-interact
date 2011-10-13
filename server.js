@@ -6,7 +6,8 @@ var sys = require('sys'),
     ChatServer = require('./lib/chat_server'),
     PresenceServer = require('./lib/presence_server'),
     WebSocketServer = require('websocket').server,
-    WebSocketRouter = require('websocket').router;
+    WebSocketRouter = require('websocket').router,
+    redisConnectionManager = require('./lib/model/redis_connection_manager');
 
 var VERSION = "0.1.0";
 
@@ -127,29 +128,39 @@ else {
 function handleSignalToTerminate() {
     console.log("Shutting down...");
     
+    var shutdownFailedTimeout;
+    
     var callbacksRemaining = 2;
+    
     function handleShutdownComplete() {
         callbacksRemaining --;
         if (callbacksRemaining === 0) {
+            redisConnectionManager.shutDown();
             webSocketServer.shutDown();
             setTimeout(function() {
                 console.log("Shutdown complete");
+                if (shutdownFailedTimeout) {
+                    clearTimeout(shutdownFailedTimeout);
+                }
                 process.exit(0);
-            }, 500);
+            }, 1000);
         }
     }
     
-    setTimeout(function() {
+    shutdownFailedTimeout = setTimeout(function() {
         console.log("Graceful shutdown failed.  Terminating.");
-        process.exit(1);
+        redisConnectionManager.shutdown();
+        webSocketServer.shutDown();
+        setTimeout(function() {
+            process.exit(1);
+        }, 1000);
     }, 8000);
 
     // Stop accepting new connections.
-    webSocketServer.unmount();
     httpServer.close();
     
-    chatServer.shutdown(handleShutdownComplete);
-    presenceServer.shutdown(handleShutdownComplete);
+    chatServer.shutDown(handleShutdownComplete);
+    presenceServer.shutDown(handleShutdownComplete);
 }
 
 process.on('SIGINT', handleSignalToTerminate);
