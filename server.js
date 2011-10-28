@@ -2,6 +2,7 @@
 
 var sys = require('sys'),
     spawn = require('child_process').spawn,
+    os = require('os'),
     http = require('http'),
     ChatServer = require('./lib/chat_server'),
     PresenceServer = require('./lib/presence_server'),
@@ -12,6 +13,8 @@ var sys = require('sys'),
 var VERSION = "0.1.0";
 
 var catchExceptions = true;
+
+var terminationRequests = 0;
 
 var args = { /* defaults */
     port: "9000",
@@ -28,7 +31,7 @@ process.argv.forEach(function(value) {
 });
 
 var port = parseInt(args['port']);
-var host = args['listenip'];
+var listenip = args['listenip'];
 var serverId = args['serverid'];
 var showHelp = args['help'];
 
@@ -63,7 +66,7 @@ var webSocketRouter;
 var chatServer;
 var presenceServer;
 
-function listen(port, host, serverId) {
+function listen(port, listenip, serverId) {
     console.log("Server ID: " + serverId);
     
     httpServer = http.createServer(function(req, res) {
@@ -72,9 +75,9 @@ function listen(port, host, serverId) {
         res.end("Nothing to see here.  Move along.\n");
     });
     
-    if (host) {
-        httpServer.listen(port, host, function() {
-            console.log("Listening on " + host + ":" + port);
+    if (listenip) {
+        httpServer.listen(port, listenip, function() {
+            console.log("Listening on " + listenip + ":" + port);
         });
     }
     else {
@@ -91,9 +94,9 @@ function listen(port, host, serverId) {
     webSocketRouter = new WebSocketRouter();
     webSocketRouter.attachServer(webSocketServer);
     
-    chatServer = new ChatServer();
+    chatServer = new ChatServer(serverId);
     chatServer.debug = args.debug ? true : false;
-    chatServer.mount( webSocketRouter, serverId );
+    chatServer.mount( webSocketRouter );
     
     presenceServer = new PresenceServer();
     presenceServer.debug = args.debug ? true : false;
@@ -102,22 +105,12 @@ function listen(port, host, serverId) {
 
 if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
     if (serverId) {
-        listen(port, host, serverId);
+        listen(port, listenip, serverId);
     }
     else {
-        var hostname = spawn('hostname');
-        hostname.stdout.addListener('data', function(data) {
-            serverId = data;
-        });
-        hostname.addListener('exit', function(code) {
-            serverId = serverId.toString().trim();
-            if (code != 0) {
-                console.log("Unable to determine hostname.  You must explicitly provide a serverId");
-                process.exit(1);
-            }
-            serverId = serverId + "-" + port;
-            listen(port, host, serverId);
-        });
+        var hostname = os.hostname();
+        serverId = hostname + "-" + port;
+        listen(port, listenip, serverId);
     }
 }
 else {
@@ -126,6 +119,12 @@ else {
 }
 
 function handleSignalToTerminate() {
+    terminationRequests ++;
+    if (terminationRequests === 2) {
+        console.log("Received two termination requests. Exiting Immediately.");
+        process.exit(1);
+    }
+    
     console.log("Shutting down...");
     
     var shutdownFailedTimeout;
@@ -149,7 +148,7 @@ function handleSignalToTerminate() {
     
     shutdownFailedTimeout = setTimeout(function() {
         console.log("Graceful shutdown failed.  Terminating.");
-        redisConnectionManager.shutdown();
+        redisConnectionManager.shutDown();
         webSocketServer.shutDown();
         setTimeout(function() {
             process.exit(1);
@@ -165,7 +164,6 @@ function handleSignalToTerminate() {
 
 process.on('SIGINT', handleSignalToTerminate);
 process.on('SIGTERM', handleSignalToTerminate);
-process.on('SIGKILL', handleSignalToTerminate);
 
 if (catchExceptions) {
     // Top level exception handler, for safety.  Log stack trace.
