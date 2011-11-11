@@ -1,24 +1,8 @@
 #!/usr/bin/env node
-
-var sys = require('sys'),
-    spawn = require('child_process').spawn,
-    os = require('os'),
-    http = require('http'),
-    ChatServer = require('./lib/chat_server'),
-    PresenceServer = require('./lib/presence_server'),
-    WebSocketServer = require('websocket').server,
-    WebSocketRouter = require('websocket').router,
-    redisConnectionManager = require('./lib/model/redis_connection_manager');
-
-var VERSION = "0.1.0";
-
-var catchExceptions = true;
-
-var terminationRequests = 0;
-
 var args = { /* defaults */
     port: "9000",
-    debug: false
+    debug: false,
+    loglevel: 'debug'
 };
 
 /* Parse command line options */
@@ -30,10 +14,21 @@ process.argv.forEach(function(value) {
     }
 });
 
+var logLevels = {
+    "debug3": 0,
+    "debug2": 2,
+    "debug":  4,
+    "info":   6,
+    "warn":   8,
+    "error":  10,
+    "fatal":  12
+};
+
 var port = parseInt(args['port']);
 var listenip = args['listenip'];
 var serverId = args['serverid'];
 var showHelp = args['help'];
+var logLevel = logLevels[args['loglevel'].toLowerCase()];
 
 console.log("Worlize Chat Server Version " + VERSION);
 console.log("--------------------------------------------");
@@ -52,37 +47,72 @@ if (showHelp) {
     console.log("  --listenip=<ip>       Listen on the specified IP address only. Default is to");
     console.log("                        listen on all interfaces.");
     console.log("");
+    console.log("  --loglevel=<level>    Set log level.  Default is debug.");
+    console.log("                        Accepted values, in order of increasing verbosity:");
+    console.log("                          fatal, error, warn, info, debug, debug2, debug3");
+    console.log("");
     process.exit(0);    
 }
 else {
     console.log("For usage information, run with --help.");
 }
 
+if (typeof(logLevel) !== 'number') {
+    console.log("Invalid log level: " + args['loglevel']);
+    process.exit(1);
+}
+else {
+    console.log("Log level: " + args['loglevel']);
+}
+
+var sys = require('sys'),
+    spawn = require('child_process').spawn,
+    os = require('os'),
+    http = require('http'),
+    ChatServer = require('./lib/chat_server'),
+    PresenceServer = require('./lib/presence_server'),
+    WebSocketServer = require('websocket').server,
+    WebSocketRouter = require('websocket').router,
+    redisConnectionManager = require('./lib/model/redis_connection_manager'),
+    Log = require('./lib/util/log'),
+    ConsoleTarget = require('./lib/util/console_target');
+
+var logger = Log.getLogger('main');
+
+var consoleTarget = new ConsoleTarget();
+consoleTarget.logTime = true;
+consoleTarget.logIdentifier = true;
+consoleTarget.logSeverity = true;
+consoleTarget.logLevel = logLevel;
+Log.addTarget(consoleTarget);
+
+var VERSION = "0.1.0";
+var catchExceptions = true;
+var terminationRequests = 0;
 var server;
 var httpServer;
 var webSocketServer;
 var webSocketRouter;
-
 var chatServer;
 var presenceServer;
 
 function listen(port, listenip, serverId) {
-    console.log("Server ID: " + serverId);
+    logger.info("Server ID: " + serverId);
     
     httpServer = http.createServer(function(req, res) {
-        console.log("Request for url " + req.url);
+        logger.info("Request for url " + req.url);
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end("Nothing to see here.  Move along.\n");
     });
     
     if (listenip) {
         httpServer.listen(port, listenip, function() {
-            console.log("Listening on " + listenip + ":" + port);
+            logger.info("Listening on " + listenip + ":" + port);
         });
     }
     else {
         httpServer.listen(port, function() {
-            console.log("Listening on 0.0.0.0:" + port);
+            logger.info("Listening on 0.0.0.0:" + port);
         });
     }
     
@@ -114,18 +144,18 @@ if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
     }
 }
 else {
-    console.log("You must specify a valid port number");
+    logger.fatal("You must specify a valid port number");
     process.exit(1);
 }
 
 function handleSignalToTerminate() {
     terminationRequests ++;
     if (terminationRequests === 2) {
-        console.log("Received two termination requests. Exiting Immediately.");
+        logger.info("Received two termination requests. Exiting Immediately.");
         process.exit(1);
     }
     
-    console.log("Shutting down...");
+    logger.info("Shutting down...");
     
     var shutdownFailedTimeout;
     
@@ -137,7 +167,7 @@ function handleSignalToTerminate() {
             redisConnectionManager.shutDown();
             webSocketServer.shutDown();
             setTimeout(function() {
-                console.log("Shutdown complete");
+                logger.info("Shutdown complete");
                 if (shutdownFailedTimeout) {
                     clearTimeout(shutdownFailedTimeout);
                 }
@@ -147,7 +177,7 @@ function handleSignalToTerminate() {
     }
     
     shutdownFailedTimeout = setTimeout(function() {
-        console.log("Graceful shutdown failed.  Terminating.");
+        logger.fatal("Graceful shutdown failed.  Terminating.");
         redisConnectionManager.shutDown();
         webSocketServer.shutDown();
         setTimeout(function() {
@@ -168,7 +198,7 @@ process.on('SIGTERM', handleSignalToTerminate);
 if (catchExceptions) {
     // Top level exception handler, for safety.  Log stack trace.
     process.addListener('uncaughtException', function(error) {
-        console.log("CRITICAL: Uncaught Exception!\n-----BEGIN STACK TRACE-----\n" + error.stack + "\n-----END STACK TRACE-----");
+        logger.fatal("Uncaught Exception!\n-----BEGIN STACK TRACE-----\n" + error.stack + "\n-----END STACK TRACE-----");
     });
 }
 
