@@ -198,7 +198,11 @@ process.on('SIGTERM', handleSignalToTerminate);
 if (catchExceptions) {
     // Top level exception handler, for safety.  Log stack trace.
     process.addListener('uncaughtException', function(error) {
-        logger.fatal("Uncaught Exception!\n-----BEGIN STACK TRACE-----\n" + error.stack + "\n-----END STACK TRACE-----");
+        var logObject = {
+            stackTrace: error.stack
+        };
+        logger.fatal("Uncaught Exception: " + JSON.stringify(logObject));
+        logger.debug("Stack Trace:\n" + error.stack);
     });
 }
 
