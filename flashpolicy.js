@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-var net = require('net'),
-    sys = require('sys');
-
+var net = require('net');
 
 var args = { /* defaults */
     devel: false
