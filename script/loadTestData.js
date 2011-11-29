@@ -1,5 +1,4 @@
-var sys = require('sys'),
-    redisConnectionManager = require('../lib/model/redis_connection_manager').connectionManager,
+var redisConnectionManager = require('../lib/model/redis_connection_manager').connectionManager,
     redis = redisConnectionManager.getClient('presence');
 
 redis.set("session:a1f85d84-7ed3-11df-9975-f716865e4541", JSON.stringify(
