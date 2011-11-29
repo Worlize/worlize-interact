@@ -65,8 +65,7 @@ else {
     console.log("Log level: " + args['loglevel']);
 }
 
-var sys = require('sys'),
-    spawn = require('child_process').spawn,
+var spawn = require('child_process').spawn,
     os = require('os'),
     http = require('http'),
     ChatServer = require('./lib/chat_server'),
