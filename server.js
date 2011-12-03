@@ -79,7 +79,7 @@ var spawn = require('child_process').spawn,
 var logger = Log.getLogger('main');
 
 var consoleTarget = new ConsoleTarget();
-consoleTarget.logTime = true;
+consoleTarget.logTime = false;
 consoleTarget.logIdentifier = true;
 consoleTarget.logSeverity = true;
 consoleTarget.logLevel = logLevel;
