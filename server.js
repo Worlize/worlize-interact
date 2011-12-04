@@ -83,6 +83,8 @@ consoleTarget.logTime = false;
 consoleTarget.logIdentifier = true;
 consoleTarget.logSeverity = true;
 consoleTarget.logLevel = logLevel;
+consoleTarget.instanceId = serverId;
+consoleTarget.logInstanceId = true;
 Log.addTarget(consoleTarget);
 
 var VERSION = "0.1.0";
