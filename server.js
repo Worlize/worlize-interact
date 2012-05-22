@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 var args = { /* defaults */
     port: "9000",
+    apiport: "7000",
+    apihost: "127.0.0.1",
     debug: false,
-    loglevel: 'debug'
+    loglevel: 'debug',
+    "node-env": 'development'
 };
 
 /* Parse command line options */
@@ -26,9 +29,13 @@ var logLevels = {
 
 var port = parseInt(args['port']);
 var listenip = args['listenip'];
+var apiport = parseInt(args['apiport']);
+var apilistenip = args['apihost'];
 var serverId = args['serverid'];
 var showHelp = args['help'];
 var logLevel = logLevels[args['loglevel'].toLowerCase()];
+var nodeEnv = args['node-env'];
+process.env['NODE_ENV'] = nodeEnv;
 
 console.log("Worlize Chat Server Version " + VERSION);
 console.log("--------------------------------------------");
@@ -51,7 +58,16 @@ if (showHelp) {
     console.log("                        Accepted values, in order of increasing verbosity:");
     console.log("                          fatal, error, warn, info, debug, debug2, debug3");
     console.log("");
-    process.exit(0);    
+    console.log("  --apiport=<port>      Specify the port that the internal REST API service");
+    console.log("                          listen on.");
+    console.log("");
+    console.log("  --apihost=<ip>        Specify which IP address the internal REST API should");
+    console.log("                          listen on.");
+    console.log("");
+    console.log("  --node-env=<env>      Use 'production' to run in production mode, or");
+    console.log("                        use 'development' to run in development mode.");
+    console.log("");
+    process.exit(0);
 }
 else {
     console.log("For usage information, run with --help.");
@@ -70,6 +86,7 @@ var spawn = require('child_process').spawn,
     http = require('http'),
     ChatServer = require('./lib/chat_server'),
     PresenceServer = require('./lib/presence_server'),
+    InternalAPIServer = require('./lib/api/internal'),
     WebSocketServer = require('websocket').server,
     WebSocketRouter = require('websocket').router,
     redisConnectionManager = require('./lib/model/redis_connection_manager'),
@@ -132,6 +149,13 @@ function listen(port, listenip, serverId) {
     presenceServer = new PresenceServer();
     presenceServer.debug = args.debug ? true : false;
     presenceServer.mount( webSocketRouter, serverId );
+    
+    InternalAPIServer.start({
+        host: apilistenip,
+        port: apiport,
+        serverId: serverId
+    });
+    apiServer = InternalAPIServer.app;
 }
 
 if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
