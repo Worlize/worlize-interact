@@ -198,7 +198,7 @@ else {
 }
 
 function handleSignalToTerminate() {
-    if (!shutdownLogTarget) {
+    if (!shutdownLogTarget && typeof(logfile) === 'string') {
         shutdownLogTarget = new ConsoleTarget();
         shutdownLogTarget.logTime = false;
         shutdownLogTarget.logIdentifier = true;
