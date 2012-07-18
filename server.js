@@ -191,6 +191,9 @@ if (typeof(port) == 'number' && port !== NaN && port > 0 && port < 65535) {
 }
 else {
     logger.fatal("You must specify a valid port number");
+    if (logTarget.close) {
+        logTarget.close();
+    }
     process.exit(1);
 }
 
@@ -208,6 +211,9 @@ function handleSignalToTerminate() {
     terminationRequests ++;
     if (terminationRequests === 2) {
         logger.info("Received two termination requests. Exiting Immediately.");
+        if (logTarget.close) {
+            logTarget.close();
+        }
         process.exit(1);
     }
     
@@ -227,6 +233,9 @@ function handleSignalToTerminate() {
                 if (shutdownFailedTimeout) {
                     clearTimeout(shutdownFailedTimeout);
                 }
+                if (logTarget.close) {
+                    logTarget.close();
+                }
                 process.exit(0);
             }, 1000);
         }
@@ -237,6 +246,9 @@ function handleSignalToTerminate() {
         redisConnectionManager.shutDown();
         webSocketServer.shutDown();
         setTimeout(function() {
+            if (logTarget.close) {
+                logTarget.close();
+            }
             process.exit(1);
         }, 1000);
     }, 8000);
