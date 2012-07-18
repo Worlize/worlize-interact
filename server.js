@@ -1,10 +1,15 @@
 #!/usr/bin/env node
+var VERSION = "0.1.0";
+var catchExceptions = true;
+
 var args = { /* defaults */
     port: "9000",
     apiport: "7000",
     apihost: "127.0.0.1",
     debug: false,
     loglevel: 'debug',
+    logfile: false,
+    logtimestamps: false,
     "node-env": 'development'
 };
 
@@ -34,6 +39,8 @@ var apilistenip = args['apihost'];
 var serverId = args['serverid'];
 var showHelp = args['help'];
 var logLevel = logLevels[args['loglevel'].toLowerCase()];
+var logfile = args['logfile'];
+var logtimestamps = args['logtimestamps'];
 var nodeEnv = args['node-env'];
 process.env['NODE_ENV'] = nodeEnv;
 
@@ -57,6 +64,10 @@ if (showHelp) {
     console.log("  --loglevel=<level>    Set log level.  Default is debug.");
     console.log("                        Accepted values, in order of increasing verbosity:");
     console.log("                          fatal, error, warn, info, debug, debug2, debug3");
+    console.log("");
+    console.log("  --logfile=<filename>  Log output to a file instead of stdout.");
+    console.log("");
+    console.log("  --logtimestamps       Include timestamps in log output.");
     console.log("");
     console.log("  --apiport=<port>      Specify the port that the internal REST API service");
     console.log("                          listen on.");
@@ -91,21 +102,31 @@ var spawn = require('child_process').spawn,
     WebSocketRouter = require('websocket').router,
     redisConnectionManager = require('./lib/model/redis_connection_manager'),
     Log = require('./lib/util/log'),
-    ConsoleTarget = require('./lib/util/console_target');
+    ConsoleTarget = require('./lib/util/console_target'),
+    FileTarget = require('./lib/util/file_target');
 
 var logger = Log.getLogger('main');
 
-var consoleTarget = new ConsoleTarget();
-consoleTarget.logTime = false;
-consoleTarget.logIdentifier = true;
-consoleTarget.logSeverity = true;
-consoleTarget.logLevel = logLevel;
-consoleTarget.instanceId = serverId;
-consoleTarget.logInstanceId = true;
-Log.addTarget(consoleTarget);
+var logTarget;
+var shutdownLogTarget;
+if (typeof(logfile) === 'string') {
+    logTarget = new FileTarget();
+    logTarget.logFilePath = logfile;
+    console.log("Logging to " + logfile);
+}
+else {
+    logTarget = new ConsoleTarget();
+}
+logTarget.logTime = logtimestamps;
+logTarget.logIdentifier = true;
+logTarget.logSeverity = true;
+logTarget.logLevel = logLevel;
+logTarget.instanceId = serverId;
+logTarget.logInstanceId = true;
+Log.addTarget(logTarget);
 
-var VERSION = "0.1.0";
-var catchExceptions = true;
+logger.info('Starting Worlize Interactivity Server ' + VERSION);
+
 var terminationRequests = 0;
 var server;
 var httpServer;
@@ -174,6 +195,16 @@ else {
 }
 
 function handleSignalToTerminate() {
+    if (!shutdownLogTarget) {
+        shutdownLogTarget = new ConsoleTarget();
+        shutdownLogTarget.logTime = false;
+        shutdownLogTarget.logIdentifier = true;
+        shutdownLogTarget.logNotation = false;
+        shutdownLogTarget.logSeverity = false;
+        shutdownLogTarget.logLevel = logLevels['info'];
+        shutdownLogTarget.logInstanceId = false;
+        Log.addTarget(shutdownLogTarget);
+    }
     terminationRequests ++;
     if (terminationRequests === 2) {
         logger.info("Received two termination requests. Exiting Immediately.");
