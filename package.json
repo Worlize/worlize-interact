@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "description": "Real-time interactivity server powering the Worlize platform.",
     "dependencies": {
-        "websocket": "=1.0.6",
+        "websocket": "=1.0.7",
         "policyfile": ">=0.0.3",
         "redis": "=0.7.1",
         "mysql": "=0.9.5",
