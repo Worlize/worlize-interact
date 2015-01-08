@@ -103,7 +103,8 @@ var spawn = require('child_process').spawn,
     redisConnectionManager = require('./lib/model/redis_connection_manager'),
     Log = require('./lib/util/log'),
     ConsoleTarget = require('./lib/util/console_target'),
-    FileTarget = require('./lib/util/file_target');
+    FileTarget = require('./lib/util/file_target'),
+    heapdump = require('heapdump');
 
 var logger = Log.getLogger('main');
 
